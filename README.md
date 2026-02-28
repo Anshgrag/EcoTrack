@@ -9,7 +9,7 @@
 
 ## Overview
 
-**EcoTrack** is a comprehensive smart energy monitoring system designed to help users track, analyze, and optimize their electricity consumption. The system integrates with **Tuya smart plugs** to provide real-time monitoring of appliances, automatic sleep mode detection, and intelligent cost savings tracking.
+**EcoTrack** is a comprehensive smart energy monitoring system designed to help users track, analyze, and optimize their electricity consumption. The system integrates with **Tuya** and **Wipro smart plugs** to provide real-time monitoring of appliances, automatic sleep mode detection, and intelligent cost savings tracking.
 
 ---
 
@@ -46,15 +46,158 @@
 
 ---
 
-## Tech Stack
+## Three Ways to Run EcoTrack
 
-| Layer | Technology |
-|-------|------------|
-| **Backend** | Python 3.12, Flask 3.0 |
-| **Database** | SQLite (built-in) |
-| **Frontend** | HTML5, CSS3, JavaScript (ES6+) |
-| **Charts** | Chart.js 4.4.0 |
-| **IoT Integration** | Tuya Cloud API |
+### Option 1: Demo Mode (No Hardware Required)
+Perfect for testing and demonstration without real smart plugs.
+
+```bash
+# 1. Navigate to backend folder
+cd backend
+
+# 2. Create virtual environment (if not created)
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r ../requirements.txt
+
+# 4. Run the main Flask app
+python app.py
+
+# 5. In a NEW terminal, generate demo data
+cd backend
+python demo_data.py
+
+# 6. Open browser
+# Visit http://localhost:8000
+```
+
+Demo mode generates 30 days of realistic electricity usage data for 8 different devices.
+
+---
+
+### Option 2: Tuya Smart Plug Integration
+
+#### Step 1: Get Tuya Credentials
+
+1. **Create a Tuya Developer Account**
+   - Go to [Tuya IoT Platform](https://iot.tuya.com/)
+   - Register for a free account
+   - Create a new project
+
+2. **Get API Credentials**
+   - In your Tuya project, find:
+     - `Access ID` (API Key)
+     - `Access Secret` (API Secret)
+     - `Region` (us, eu, cn, etc.)
+
+3. **Get Your Device ID**
+   - Open Tuya Smart Life app
+   - Find your smart plug
+   - Copy the device ID from device settings
+
+#### Step 2: Configure Tuya
+
+Edit `tinytuya.json` in the project root:
+
+```json
+{
+    "apiKey": "YOUR_TUYA_ACCESS_ID",
+    "apiSecret": "YOUR_TUYA_ACCESS_SECRET",
+    "apiRegion": "us",
+    "apiDeviceID": "YOUR_DEVICE_ID"
+}
+```
+
+#### Step 3: Run Tuya Integration
+
+```bash
+# Start the backend
+cd backend
+source venv/bin/activate
+python app.py
+
+# In a NEW terminal, run Tuya integration
+cd backend
+python tuya_integration.py
+```
+
+This will:
+- Poll your Tuya plug every 30 seconds
+- Send readings to the EcoTrack API
+- You can view data at http://localhost:8000
+
+---
+
+### Option 3: Wipro Smart Plug Integration
+
+#### Step 1: Get Wipro Plug
+
+1. Purchase a Wipro Smart Plug
+2. Download Wipro Smart Home app
+3. Set up your plug and note the device ID
+
+#### Step 2: Configure Wipro
+
+Edit `wipro_config.json` in the project root:
+
+```json
+{
+    "device_id": "YOUR_WIPRO_DEVICE_ID",
+    "api_key": "YOUR_WIPRO_API_KEY",
+    "local_ip": "192.168.1.100",
+    "device_name": "Living Room Plug"
+}
+```
+
+**Note:** If your Wipro plug supports local API, enter its IP address. Otherwise, it will use simulated data.
+
+#### Step 3: Run Wipro Integration
+
+```bash
+# Start the backend
+cd backend
+source venv/bin/activate
+python app.py
+
+# In a NEW terminal, run Wipro integration
+cd backend
+python wipro_integration.py
+```
+
+---
+
+## Quick Start Guide
+
+### Installation
+
+```bash
+# Clone or download the project
+cd EcoTrack
+
+# Install Python dependencies
+cd backend
+pip install -r ../requirements.txt
+```
+
+### Running the Application
+
+```bash
+# Terminal 1: Start Backend
+cd backend
+python app.py
+# Server runs on http://localhost:5000
+
+# Terminal 2: Start Frontend  
+cd frontend
+python -m http.server 8000
+# Open http://localhost:8000 in browser
+
+# Terminal 3 (Optional): Generate Demo Data
+cd backend
+python demo_data.py
+```
 
 ---
 
@@ -64,54 +207,40 @@
 EcoTrack/
 ├── backend/
 │   ├── app.py              # Main Flask application
+│   ├── demo_data.py        # Demo data generator
+│   ├── tuya_integration.py # Tuya plug integration
+│   ├── wipro_integration.py# Wipro plug integration
 │   ├── ecotrack.db        # SQLite database
 │   └── venv/              # Python virtual environment
+│
 ├── frontend/
 │   ├── index.html         # Main dashboard
 │   ├── style.css         # Styling
 │   ├── script.js         # Frontend logic
 │   └── venv/             # Python virtual environment
+│
 ├── screenshots/          # App screenshots
 ├── requirements.txt      # Python dependencies
+├── tinytuya.json        # Tuya configuration (create this)
+├── wipro_config.json     # Wipro configuration (create this)
 └── README.md            # This file
 ```
 
 ---
 
-## Getting Started
+## API Endpoints
 
-### Prerequisites
-
-- Python 3.8 or higher
-- Modern web browser (Chrome, Firefox, Safari, Edge)
-- Tuya Smart Plugs (optional for device control)
-
-### Installation
-
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/Anshgrag/EcoTrack.git
-   cd EcoTrack
-   ```
-
-2. **Install backend dependencies**
-   ```bash
-   cd backend
-   pip install -r requirements.txt
-   ```
-
-3. **Start the backend server**
-   ```bash
-   python app.py
-   ```
-   The API will run at `http://localhost:5000`
-
-4. **Start the frontend server**
-   ```bash
-   cd frontend
-   python -m http.server 8000
-   ```
-   Open `http://localhost:8000` in your browser
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API health check |
+| `/api/electricity/add` | POST | Add electricity reading |
+| `/api/electricity/history` | GET | Get electricity history |
+| `/api/savings` | GET | Get savings data |
+| `/api/devices` | GET | List all devices |
+| `/api/devices/<id>/toggle` | POST | Toggle device |
+| `/api/device-profile` | POST | Add device profile |
+| `/api/rooms/usage` | GET | Get room usage |
+| `/api/device-event` | POST | Record device event |
 
 ---
 
@@ -134,62 +263,59 @@ EcoTrack/
 
 ---
 
-## API Endpoints
+## Configuration Files
 
-| Endpoint | Method | Description |
-|----------|--------|-------------|
-| `/` | GET | API health check |
-| `/api/electricity/add` | POST | Add electricity reading |
-| `/api/electricity/history` | GET | Get electricity history |
-| `/api/savings` | GET | Get savings data |
-| `/api/devices` | GET | List all devices |
-| `/api/devices/<id>/toggle` | POST | Toggle device |
-| `/api/device-profile` | POST | Add device profile |
-| `/api/rooms/usage` | GET | Get room usage |
-| `/api/device-event` | POST | Record device event |
-
----
-
-## Demo Data
-
-The system comes with pre-configured demo devices:
-- **Living Room TV** (120W rated)
-- **Kitchen Refrigerator** (150W rated)
-- **Bedroom AC** (1200W rated)
-- **Office Computer** (200W rated)
-- **Washing Machine** (500W rated)
-
----
-
-## Configuration
-
-### Tuya Integration
-
-To enable device control, configure `tinytuya.json` in the project root:
-
+### tinytuya.json (for Tuya Integration)
 ```json
 {
-  "apiKey": "your_api_key",
-  "apiSecret": "your_api_secret",
-  "apiRegion": "us",
-  "apiDeviceID": "your_device_id"
+    "apiKey": "YOUR_TUYA_ACCESS_ID",
+    "apiSecret": "YOUR_TUYA_ACCESS_SECRET", 
+    "apiRegion": "us",
+    "apiDeviceID": "YOUR_DEVICE_ID"
 }
 ```
 
-### Cost Settings
-
-Default electricity cost is set to **$0.12/kWh** (configurable in `backend/app.py`)
+### wipro_config.json (for Wipro Integration)
+```json
+{
+    "device_id": "YOUR_WIPRO_DEVICE_ID",
+    "api_key": "YOUR_WIPRO_API_KEY",
+    "local_ip": "192.168.1.100",
+    "device_name": "My Smart Plug"
+}
+```
 
 ---
 
-## Future Enhancements
+## Troubleshooting
 
-- [ ] Mobile app (React Native)
-- [ ] Push notifications
-- [ ] AI-based consumption predictions
-- [ ] Multi-user support
-- [ ] Export reports (PDF/Excel)
-- [ ] Integration with more smart home platforms
+### Tabs Not Working
+1. Open browser console (F12)
+2. Check for JavaScript errors
+3. Make sure backend is running on port 5000
+4. Clear browser cache (Ctrl+F5)
+
+### API Not Connecting
+1. Verify backend is running: `curl http://localhost:5000/`
+2. Check firewall settings
+3. Verify CORS settings in app.py
+
+### Smart Plug Not Responding
+- Check internet connection
+- Verify device is online in Tuya/Wipro app
+- Check API credentials are correct
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| **Backend** | Python 3.12, Flask 3.0 |
+| **Database** | SQLite (built-in) |
+| **Frontend** | HTML5, CSS3, JavaScript (ES6+) |
+| **Charts** | Chart.js 4.4.0 |
+| **IoT Integration** | Tuya Cloud API, Wipro Smart Home |
 
 ---
 

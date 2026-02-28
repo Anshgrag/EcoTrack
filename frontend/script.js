@@ -33,42 +33,38 @@ function formatDate() {
 function setupTabSwitching() {
     console.log('=== SETUP TAB SWITCHING ===');
     const navItems = document.querySelectorAll('.nav-item');
-    console.log('Found nav items:', navItems.length);
-    console.log('Nav items:', Array.from(navItems).map(item => item.getAttribute('data-tab')));
+    
+    if (navItems.length === 0) {
+        console.error('No nav items found!');
+        return;
+    }
     
     navItems.forEach(item => {
         item.addEventListener('click', function(e) {
             e.preventDefault();
+            e.stopPropagation();
             
             const tabName = this.getAttribute('data-tab');
-            console.log('=== CLICKED TAB:', tabName, '===');
             if (!tabName) return;
             
-            if (tabName === currentTab) {
-                console.log('Tab already active:', tabName);
-                return;
-            }
+            // Remove active from all nav items
+            navItems.forEach(nav => nav.classList.remove('active'));
             
-            navItems.forEach(nav => {
-                nav.classList.remove('active');
-                console.log('Removed active from:', nav.getAttribute('data-tab'));
-            });
+            // Add active to clicked item
             this.classList.add('active');
-            console.log('Added active to:', tabName);
             
+            // Hide all tab panes
             document.querySelectorAll('.tab-pane').forEach(pane => {
                 pane.classList.remove('active');
-                console.log('Hidden pane:', pane.id);
             });
             
-            const tabPane = document.getElementById(`tab-${tabName}`);
+            // Show selected tab pane
+            const tabPane = document.getElementById('tab-' + tabName);
             if (tabPane) {
                 tabPane.classList.add('active');
-                console.log('Shown pane:', tabPane.id);
             }
             
             currentTab = tabName;
-            
             refreshTab(tabName);
         });
     });
@@ -80,23 +76,18 @@ function refreshTab(tabName) {
     console.log('=== REFRESH TAB:', tabName, '===');
     switch(tabName) {
         case 'dashboard':
-            console.log('Refreshing dashboard...');
             refreshDashboard();
             break;
         case 'cost':
-            console.log('Refreshing cost...');
             fetchCostData();
             break;
         case 'appliances':
-            console.log('Refreshing appliances...');
             fetchAppliancesData();
             break;
         case 'scheduler':
-            console.log('Refreshing scheduler...');
             loadSchedulerData();
             break;
         case 'rooms':
-            console.log('Refreshing rooms...');
             fetchRoomsData();
             break;
     }

@@ -26,3 +26,8 @@ Thumbs.db
 
 # JSON config files (contains secrets)
 tinytuya.json
+wipro_config.json
+
+# Template config files (should be customized by user)
+tuya_config.json
+wipro_config.json
